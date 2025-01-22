@@ -2,7 +2,7 @@ import openai
 
 # for backward compatibility, you can still use `https://api.deepseek.com/v1` as `base_url`.
 openai.api_base="https://api.deepseek.com"
-openai.api_key="sk-d4015dae044d45bea3fd24d701e2bd71"
+openai.api_key="sk-*"
 # client = OpenAI(api_key="<your API key>", base_url="https://api.deepseek.com")
 
 response = openai.ChatCompletion.create(
