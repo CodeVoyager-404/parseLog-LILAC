@@ -101,8 +101,10 @@ def common_args():
                         default=0)
     parser.add_argument('--example_size', type=int,
                         default=0)
+    parser.add_argument('--model_name', type=str,
+                        default="deepseek-1.5B")
     parser.add_argument('--model', type=str,
-                        default="gpt-3.5-turbo-0613")
+                        default="deepseek-API")
     parser.add_argument('--selection_method', type=str,
                         default="LILAC")    
     args = parser.parse_args()
