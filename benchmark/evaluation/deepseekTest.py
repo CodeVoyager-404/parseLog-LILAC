@@ -21,6 +21,7 @@
 
 
 
+
 # # 导入PyTorch库
 # import torch
 #
@@ -135,5 +136,6 @@ outputs = model.generate(
         max_new_tokens=2048,
         temperature=0.5
 )
+
 res=tokenizer.decode(outputs[0], skip_special_tokens=True)
 print(res)
