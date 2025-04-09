@@ -19,6 +19,7 @@ import os
 sys.path.append('../')
 
 from logparser.LILAC import LogParser
+from models.deepseek import deepseekLoader
 from evaluation.settings import benchmark_settings
 from evaluation.utils.common import common_args
 from evaluation.utils.evaluator_main import evaluator, prepare_results
@@ -63,13 +64,16 @@ datasets_full = [
 if __name__ == "__main__":
     args = common_args()
 
+    # model_path="D:\Documents\Scholars\codes\deepseek-aiDeepSeek-R1-Distill-Qwen-1.5B"
+    # modelLoader=deepseekLoader(model_path)
+
     # args.shot = 32
     # args.example_size = 3
     # args.model = "deepseek-chat"
 
     data_type = "full" if args.full_data else "2k"
     input_dir = f"../../{data_type}_dataset/"
-    output_dir = f"../../result/result_LILAC_{data_type}_{args.shot}_{args.example_size}_{args.model}"
+    output_dir = f"../../result/result_LILAC_{data_type}_{args.shot}_{args.example_size}_{args.model_name}"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -94,6 +98,8 @@ if __name__ == "__main__":
         else:
             parser = LogParser
         # run evaluator for a dataset
+
+
         evaluator(
             dataset=dataset,
             input_dir=input_dir,
@@ -103,8 +109,8 @@ if __name__ == "__main__":
             param_dict={
                 # 'log_format': setting['log_format'], 'indir': indir, 'outdir': output_dir, 'rex': setting['regex'],
                 'log_format': setting['log_format'], 'indir': indir, 'outdir': output_dir, 'rex': [],
-                'data_type': data_type, 'shot': args.shot, 'example_size': args.example_size,
-                'model': args.model, 'selection_method': args.selection_method,
+                'data_type': data_type, 'shot': args.shot, 'example_size': args.example_size, 'model_name': args.model_name,
+                'selection_method': args.selection_method,
             },
             otc=args.oracle_template_correction,
             complex=args.complex,
@@ -112,4 +118,4 @@ if __name__ == "__main__":
             result_file=result_file,
         )  # it internally saves the results into a summary file
     metric_file = os.path.join(output_dir, result_file)
-    post_average(metric_file, f"LILAC_{data_type}_complex={args.complex}_frequent={args.frequent}_{args.shot}_{args.example_size}_{args.model}", args.complex, args.frequent)
+    post_average(metric_file, f"LILAC_{data_type}_complex={args.complex}_frequent={args.frequent}_{args.shot}_{args.example_size}_{args.model_name}", args.complex, args.frequent)

@@ -4,12 +4,13 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 import json
-from .gpt_query import query_template_from_gpt_with_check
+from .deepseek_query import query_template_from_gpt_with_check
 from .parsing_cache import ParsingCache
 from .prompt_select import prompt_select
 from .post_process import correct_single_template
 from .utils import load_pickle, save_pickle, load_tuple_list, cache_to_file, read_json_file
 from tqdm import tqdm
+from models.deepseek import deepseekLoader
 
 
 def save_results_to_csv(log_file, template_file, cache_file, output_file, output_template_file):
@@ -65,7 +66,7 @@ def load_regs():
 
 class LogParser:
     def __init__(self, log_format, indir='./', outdir='./result/', rex=[],
-                 data_type='2k', shot=0, example_size=0, model="gpt-3.5-turbo-0613", selection_method="LILAC"):
+                 data_type='2k', shot=0, example_size=0, model_name="deepseek", selection_method="LILAC"):
         self.path = indir
         self.df_log = None
         self.log_format = log_format
@@ -73,15 +74,30 @@ class LogParser:
         self.shot = shot
         self.example_size = example_size
         self.selection_method = selection_method
-        self.model = model
+        self.model_name= model_name
+        
+
+
+
+    
 
     def parse(self, logName):
+
+        model_path = "D:\Documents\Scholars\codes\deepseek-aiDeepSeek-R1-Distill-Qwen-1.5B"
+        modelLoader = deepseekLoader(model_path)
+        tokenizer=modelLoader.tokenizer
+        model=modelLoader.model
+
+
+
         print('Parsing file: ' + os.path.join(self.path, logName))
         start_time = datetime.now()
         self.logName = logName
         dataset_name = logName.split('_')[0]
-        output_path = os.path.join(f"../../temp/lilac_temp_{self.data_type}_{self.shot}_{self.example_size}_{self.model}", dataset_name)
-        evaluation_path = f"../../result/result_LILAC_{self.data_type}_{self.shot}_{self.example_size}_{self.model}/"
+        # output_path = os.path.join(f"../../temp/lilac_temp_{self.data_type}_{self.shot}_{self.example_size}_{self.model}", dataset_name)
+        output_path = os.path.join(f"../../temp/lilac_temp_{self.data_type}_{self.shot}_{self.example_size}_{self.model_name}", dataset_name)
+        # evaluation_path = f"../../result/result_LILAC_{self.data_type}_{self.shot}_{self.example_size}_{self.model}/"
+        evaluation_path = f"../../result/result_LILAC_{self.data_type}_{self.shot}_{self.example_size}_{self.model_name}/"
         if os.path.exists(os.path.join(evaluation_path, f"{dataset_name}_{self.data_type}.log_structured.csv")):
             print(f"{dataset_name} already exists.")
             return
@@ -114,7 +130,7 @@ class LogParser:
         cache_step = total_line // 5
         if idx + 1 < total_line:
             for log in list(self.df_log[idx:]['Content']):
-                flag = self.process_log(cache, [log], log_messages, log_templates, idx, prompt_cases, regs_common, total_line)
+                flag = self.process_log(tokenizer,model,cache, [log], log_messages, log_templates, idx, prompt_cases, regs_common, total_line)
                 idx += 1
                 if flag:
                     num_query += 1
@@ -137,7 +153,7 @@ class LogParser:
         print('Parsing done. [Time taken: {!s}]'.format(datetime.now() - start_time))
 
 
-    def process_log(self, cache, logs, log_messages, log_templates, idx, prompt_cases, regs_common, total_line):
+    def process_log(self, tokenizer,model,cache, logs, log_messages, log_templates, idx, prompt_cases, regs_common, total_line):
         new_template = None
         for log in logs:
             results = cache.match_event(log)
@@ -148,7 +164,7 @@ class LogParser:
                     examples = prompt_select(prompt_cases, log, self.example_size, self.selection_method)
                 else:
                     examples = []
-                new_template, normal = query_template_from_gpt_with_check(log, regs_common, examples, self.model)
+                new_template, normal = query_template_from_gpt_with_check(log, tokenizer, model, regs_common, examples)
                 # new_template = post_process_template(new_template)
                 print("queried_new_template: ", new_template)
                 template_id = cache.add_templates(new_template, normal, results[2])
