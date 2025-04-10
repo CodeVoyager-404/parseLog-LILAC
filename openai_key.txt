@@ -1,2 +1,2 @@
 https://api.deepseek.com
-sk-*
+sk-d4015dae044d45bea3fd24d701e2bd71
